@@ -1,29 +1,37 @@
-import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from './pages/Home'
-import Sidebar from './components/Sidebar'
-import Appointments from './pages/Appointments';
-import Patients from './pages/Patients';
-import Setting from './pages/Setting';
-import Chats from './pages/Chats';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import DashboardLayout from './pages/DashboardLayout';
+import DashboardOverviewPage from './pages/DashboardOverviewPage';
+import WeightProgressPage from './pages/WeightProgressPage';
+import ShipmentDetailsPage from './pages/ShipmentDetailsPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import { useAuth } from './context/AuthContext';
 
+function App() {
+  const { isAuthenticated, isLoading } = useAuth();
 
-const App = () => {
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
+
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-
-      <div className="flex-1 bg-gray-50 p-6 overflow-auto">
-        <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/appointments" element={<Appointments />} />
-            <Route path="/patients" element={<Patients />} />
-            <Route path="/chats" element={<Chats />} />
-            <Route path="/settings" element={<Setting />} />
-          </Routes>
-      </div>
-    </div>
-  )
+    <Routes>
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <LoginPage />} />
+      <Route 
+        path="/" 
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<DashboardOverviewPage />} />
+        <Route path="weight-progress" element={<WeightProgressPage />} />
+        <Route path="shipments" element={<ShipmentDetailsPage />} />
+      </Route>
+      <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
